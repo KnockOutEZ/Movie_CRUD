@@ -21,8 +21,8 @@ func (app *application) getOneMovie(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		//prints parameter error in terminal
 		app.logger.Print(errors.New("invalid id parameter"))
-		//sends param to errorJSON func in utilities for better error handling 
-		app.errorJSON(w,err)
+		//sends param to errorJSON func in utilities for better error handling
+		app.errorJSON(w, err)
 		//breaks out from condition and not the function
 		return
 	}
@@ -39,13 +39,13 @@ func (app *application) getOneMovie(w http.ResponseWriter, r *http.Request) {
 		ReleaseDate: time.Now(),
 		Runtime:     100,
 		Rating:      5,
-		MPAARating:  "5",
+		MPAARating:  "pegi-18",
 		Created_At:  time.Now(),
 		Updated_At:  time.Now(),
 	}
 
 	//sends data to writeJSON func in utilities and it return json with a key
-	err = app.writeJSON(w, http.StatusOK,movie,"movie")
+	err = app.writeJSON(w, http.StatusOK, movie, "movie")
 }
 
 func (app *application) getAllMovies(w http.ResponseWriter, r *http.Request) {
