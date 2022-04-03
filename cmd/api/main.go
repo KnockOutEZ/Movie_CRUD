@@ -1,6 +1,7 @@
 package main
 
 import (
+	"backend/models"
 	"context"
 	"database/sql"
 	"flag"
@@ -37,6 +38,7 @@ type AppStatus struct {
 type application struct {
 	config config
 	logger *log.Logger
+	models models.Models
 }
 
 func main() {
@@ -61,13 +63,15 @@ func main() {
 	//closes connection with database after everything is done.(Always have to do it after openning a connection with database)
 	defer db.Close()
 
-	//pushing data in application struct
+	//populating data in application struct
 	app := &application{
 		config: cfg,
 		logger: logger,
+		//send db data to NewModels fun in models.go.
+		models:models.NewModels(db),
 	}
 
-	//default server setup build it http.server method
+	//default server setup with built in http.server method
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.port),
 		Handler:      app.routes(),
