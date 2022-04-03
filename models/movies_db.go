@@ -22,8 +22,8 @@ func (m *DBModel) Get(id int) (*Movie, error) {
 `
 
 	//using query variable to populate the row variable.
-	//QueryRowContext executes a query that is expected to return at most one row. QueryRowContext always returns a non-nil value. Errors are deferred until Row's Scan method is called. If the query selects no rows, the *Row's Scan will return ErrNoRows. Otherwise, the *Row's Scan scans the first selected row and discards the rest. 
-	row := m.DB.QueryRowContext(ctx,query,id)
+	//QueryRowContext executes a query that is expected to return at most one row. QueryRowContext always returns a non-nil value. Errors are deferred until Row's Scan method is called. If the query selects no rows, the *Row's Scan will return ErrNoRows. Otherwise, the *Row's Scan scans the first selected row and discards the rest.
+	row := m.DB.QueryRowContext(ctx, query, id)
 
 	//imagine this as the Movie struct
 	var movie Movie
@@ -40,12 +40,51 @@ func (m *DBModel) Get(id int) (*Movie, error) {
 		&movie.Created_At,
 		&movie.Updated_At,
 	)
-	if err != nil{
-		return nil,err
+	if err != nil {
+		return nil, err
 	}
 
+	//get the genres, if any
+
+	//for querying one genre for row variable
+	//mg is just an alias for movies_genre.and g is an alias for genres table
+	query = `
+	select
+		mg.id,mg.movie_id,mg.genre_id,g.genre_name
+	from
+		movies_genres mg
+		left join genres g on (g.id = mg.genre_id)
+	where
+		mg.movie_id = $1
+	`
+	//gives me a specific row depending on my id provided.
+	rows, _ := m.DB.QueryContext(ctx, query, id)
+	//closing the context to avoid any resource leaks.
+	defer rows.Close()
+
+	var genres []MovieGenre
+
+	//Next() function is used to get the next element in list go golang.
+	for rows.Next() {
+		var mg MovieGenre
+		//scans from rows
+		err := rows.Scan(
+			&mg.ID,
+			&mg.MovieID,
+			&mg.GenreID,
+			&mg.Genre.GenreName,
+		)
+		if err != nil {
+			return nil, err
+		}
+		//if genres does not exist
+		genres = append(genres, mg)
+	}
+
+	movie.MovieGenre = genres
+
 	//we are returning a movie reference cause we are returning pointer.
-	return &movie,nil
+	return &movie, nil
 }
 
 //Get returns all movies and err if any

@@ -6,14 +6,14 @@ import (
 )
 
 //Models is the wrapper for database
-type Models struct{
+type Models struct {
 	DB DBModel
 }
 
 //NewModels returns models with db pool
-func NewModels(db *sql.DB) Models{
+func NewModels(db *sql.DB) Models {
 	return Models{
-		DB:DBModel{DB:db},
+		DB: DBModel{DB: db},
 	}
 }
 
@@ -29,7 +29,7 @@ type Movie struct {
 	MPAARating  string       `json:"mpaa_rating"`
 	Created_At  time.Time    `json:"created_at"`
 	Updated_At  time.Time    `json:"updated_at"`
-	MovieGenre  []MovieGenre `json:"-"`
+	MovieGenre  []MovieGenre `json:"genres"`
 }
 
 //type for genre
