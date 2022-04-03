@@ -27,25 +27,26 @@ type Movie struct {
 	Runtime     int          `json:"runtime"`
 	Rating      int          `json:"rating"`
 	MPAARating  string       `json:"mpaa_rating"`
-	Created_At  time.Time    `json:"created_at"`
-	Updated_At  time.Time    `json:"updated_at"`
+	Created_At  time.Time    `json:"-"`
+	Updated_At  time.Time    `json:"-"`
 	MovieGenre  []MovieGenre `json:"genres"`
 }
 
 //type for genre
 type Genre struct {
-	ID         int       `json:"id"`
+	ID         int       `json:"-"`
 	GenreName  string    `json:"genre_name"`
-	Created_At time.Time `json:"created_at"`
-	Updated_At time.Time `json:"updated_at"`
+	Created_At time.Time `json:"-"`
+	Updated_At time.Time `json:"-"`
 }
 
 //type for movie genre
+// the "-" in json means they wont be delivered to frontend
 type MovieGenre struct {
-	ID         int       `json:"id"`
-	MovieID    int       `json:"movie_id"`
-	GenreID    int       `json:"genre_id"`
+	ID         int       `json:"-"`
+	MovieID    int       `json:"-"`
+	GenreID    int       `json:"-"`
 	Genre      Genre     `json:"genre"`
-	Created_At time.Time `json:"created_at"`
-	Updated_At time.Time `json:"updated_at"`
+	Created_At time.Time `json:"-"`
+	Updated_At time.Time `json:"-"`
 }
