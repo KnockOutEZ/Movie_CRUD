@@ -62,7 +62,7 @@ func (m *DBModel) Get(id int) (*Movie, error) {
 	//closing the context to avoid any resource leaks.
 	defer rows.Close()
 
-	var genres []MovieGenre
+	genres := make(map[int]string)
 
 	//Next() function is used to get the next element in list go golang.
 	for rows.Next() {
@@ -77,8 +77,8 @@ func (m *DBModel) Get(id int) (*Movie, error) {
 		if err != nil {
 			return nil, err
 		}
-		//if genres does not exist
-		genres = append(genres, mg)
+		//if genres does not exist.We append the data in genres.
+		genres[mg.ID] = mg.Genre.GenreName
 	}
 
 	movie.MovieGenre = genres
