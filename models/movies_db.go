@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 )
 
@@ -87,16 +88,26 @@ func (m *DBModel) Get(id int) (*Movie, error) {
 	return &movie, nil
 }
 
-//Get returns all movies and err if any
-func (m *DBModel) All() ([]*Movie, error) {
+//All() returns all movies and if serched by genre it will show all movies with same genre
+func (m *DBModel) All(genre ...int) ([]*Movie, error) {
 	//setup our context
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	//query for getting all mvoies ordered by title
-	query := `select id, title, description, year, release_date, rating, runtime, mpaa_rating,
-	created_at, updated_at from movies order by title
-`
+	//sort by genre functionality starts from here
+	where := ""
+	//if there is an argument passed calling this All function this snippet will run and give us a query for getting all movies with same genre.
+	//genre[0] will be whichever id we supplied while calling this function
+	if len(genre) > 0 {
+		where = fmt.Sprintf("where id in (select movie_id from movies_genres where genre_id = %d)", genre[0])
+	}
+
+	//query for getting all movies ordered by title.And if we search by same genre it will put the "where" variable data with query in this "query" variable.
+	query := fmt.Sprintf(`select id, title, description, year, release_date, rating, runtime, mpaa_rating,
+	created_at, updated_at from movies %s order by title`, where)
+
+	//sort by genre functionality ends here
+
 	//store that query result in the rows variable
 	rows, err := m.DB.QueryContext(ctx, query)
 	if err != nil {
@@ -179,25 +190,25 @@ func (m *DBModel) All() ([]*Movie, error) {
 }
 
 //for getting all genres
-func (m *DBModel) GenreAll() ([]*Genre,error){
+func (m *DBModel) GenreAll() ([]*Genre, error) {
 	//setup our context
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	//query for database. 
+	//query for database.
 	query := `select id, genre_name, created_at, updated_at from genres order by genre_name
 `
 
 	//using query variable to populate the row variable.
-	rows,err := m.DB.QueryContext(ctx, query)
-	if err != nil{
-		return nil,err
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
 	}
 	defer rows.Close()
 
 	var genres []*Genre
 
-	for rows.Next(){
+	for rows.Next() {
 		var g Genre
 		err := rows.Scan(
 			&g.ID,
@@ -205,11 +216,11 @@ func (m *DBModel) GenreAll() ([]*Genre,error){
 			&g.Created_At,
 			&g.Updated_At,
 		)
-		if err != nil{
-			return nil,err
+		if err != nil {
+			return nil, err
 		}
-		genres = append(genres,&g)
+		genres = append(genres, &g)
 	}
 
-	return genres,nil
+	return genres, nil
 }
