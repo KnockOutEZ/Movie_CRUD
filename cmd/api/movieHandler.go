@@ -47,8 +47,28 @@ func (app *application) getOneMovie(w http.ResponseWriter, r *http.Request) {
 
 	//sends data to writeJSON func in utilities and it return json with a key
 	err = app.writeJSON(w, http.StatusOK, movie, "movie")
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
 }
 
 func (app *application) getAllMovies(w http.ResponseWriter, r *http.Request) {
+	//getting all the movies.
+	movies, err := app.models.DB.All()
 
+	//checking for error
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	//finally pass the movies data to browser by using writeJSON function in utilities
+	err = app.writeJSON(w, http.StatusOK, movies, "movies")
+
+	//checking for error
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
 }

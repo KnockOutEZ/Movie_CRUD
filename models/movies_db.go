@@ -77,7 +77,7 @@ func (m *DBModel) Get(id int) (*Movie, error) {
 		if err != nil {
 			return nil, err
 		}
-		//if genres does not exist.We append the data in genres.
+		//setting our map values
 		genres[mg.ID] = mg.Genre.GenreName
 	}
 
@@ -88,6 +88,92 @@ func (m *DBModel) Get(id int) (*Movie, error) {
 }
 
 //Get returns all movies and err if any
-func (m *DBModel) All(id int) ([]*Movie, error) {
-	return nil, nil
+func (m *DBModel) All() ([]*Movie, error) {
+	//setup our context
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	//query for getting all mvoies ordered by title
+	query := `select id, title, description, year, release_date, rating, runtime, mpaa_rating,
+	created_at, updated_at from movies order by title
+`
+	//store that query result in the rows variable
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	//always remember to close context
+	defer rows.Close()
+
+	//movies variable will hold the final result
+	var movies []*Movie
+
+	//iterate through the rows variable
+	for rows.Next() {
+		var movie Movie
+		//scan the currect row and push data into our movie
+		err := rows.Scan(
+			&movie.ID,
+			&movie.Title,
+			&movie.Description,
+			&movie.Year,
+			&movie.ReleaseDate,
+			&movie.Rating,
+			&movie.Runtime,
+			&movie.MPAARating,
+			&movie.Created_At,
+			&movie.Updated_At,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		//get the genres, if any
+
+		//for querying one genre for row variable
+		//mg is just an alias for movies_genre.and g is an alias for genres table
+		genreQuery := `
+	select
+		mg.id,mg.movie_id,mg.genre_id,g.genre_name
+	from
+		movies_genres mg
+		left join genres g on (g.id = mg.genre_id)
+	where
+		mg.movie_id = $1
+	`
+		//gives me a specific row depending on my id provided.
+		GenreRows, _ := m.DB.QueryContext(ctx, genreQuery, movie.ID)
+		//closing the context to avoid any resource leaks.
+		defer rows.Close()
+
+		//creating a map for genres
+		genres := make(map[int]string)
+
+		//Next() function is used to get the next element in list go golang.
+		for GenreRows.Next() {
+			var mg MovieGenre
+			//scanning the GenreRows data into MovieGenre variable
+			err := GenreRows.Scan(
+				&mg.ID,
+				&mg.MovieID,
+				&mg.GenreID,
+				&mg.Genre.GenreName,
+			)
+			if err != nil {
+				return nil, err
+			}
+			//setting our map values
+			genres[mg.ID] = mg.Genre.GenreName
+		}
+		//closing GenreRows when we are done looping through the GenreRows.
+		GenreRows.Close()
+
+		//assign genres to the MovieGenre field of the movie variable
+		movie.MovieGenre = genres
+		//append movie reference to the movies variable to our slice of movies
+		movies = append(movies, &movie)
+	}
+
+	//and finally return all data
+	return movies, nil
 }
