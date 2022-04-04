@@ -8,6 +8,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+
 func (app *application) getOneMovie(w http.ResponseWriter, r *http.Request) {
 
 	//default julienschmidt/httprouter parameter setup.It gets key from url
@@ -73,6 +74,17 @@ func (app *application) getAllMovies(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//for getting all genres
+func (app * application) getAllGenres(w http.ResponseWriter, r *http.Request){
+	genres,err := app.models.DB.GenreAll()
+
+	if err != nil {
+		app.errorJSON(w,err)
+		return
+	}
+
+	err = app.writeJSON(w,http.StatusOK,genres,"genres")
+}
 
 func (app *application) deleteMovie(w http.ResponseWriter, r *http.Request){
 
