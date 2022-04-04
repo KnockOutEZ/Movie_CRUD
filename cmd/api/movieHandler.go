@@ -26,7 +26,7 @@ func (app *application) getOneMovie(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//just logs the id in terminal when you hit a url with id
-	app.logger.Println("id is", id)
+	// app.logger.Println("id is", id)
 
 	//grab data from database from get function in models
 	movie, err := app.models.DB.Get(id)
@@ -71,4 +71,21 @@ func (app *application) getAllMovies(w http.ResponseWriter, r *http.Request) {
 		app.errorJSON(w, err)
 		return
 	}
+}
+
+
+func (app *application) deleteMovie(w http.ResponseWriter, r *http.Request){
+
+}
+
+func (app *application) insertMovie(w http.ResponseWriter, r *http.Request){
+	
+}
+
+func (app *application) updateMovie(w http.ResponseWriter, r *http.Request){
+	
+}
+
+func (app *application) searchMovies(w http.ResponseWriter, r *http.Request){
+	
 }
