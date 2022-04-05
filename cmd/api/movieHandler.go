@@ -142,7 +142,7 @@ type MoviePayload struct {
 	MPAARating  string `json:"mpaa_rating"`
 }
 
-//for adding a movie data
+//for adding a movie data or update existing one
 func (app *application) editMovie(w http.ResponseWriter, r *http.Request) {
 	var payload MoviePayload
 
@@ -157,6 +157,15 @@ func (app *application) editMovie(w http.ResponseWriter, r *http.Request) {
 	//this is the main game.
 	var movie models.Movie
 
+	//if we edit an existing movie this code snippet will run.
+	//Note that we are ignoring err by using "_"(blank variables).But we should not do that in production
+	if payload.ID != "0"{
+		id, _ := strconv.Atoi(payload.ID)
+		m, _ := app.models.DB.Get(id)
+		movie := *m
+		movie.Updated_At = time.Now()
+	}
+
 	//converting and pushing all data into our main Movie struct
 	movie.ID, _ = strconv.Atoi(payload.ID)
 	movie.Title = payload.Title
@@ -170,10 +179,19 @@ func (app *application) editMovie(w http.ResponseWriter, r *http.Request) {
 	movie.Updated_At = time.Now()
 
 	//finally passing down the data to database
-	err = app.models.DB.InsertMovie(movie)
-	if err != nil {
-		app.errorJSON(w, err)
-		return
+	//if we are adding a new movie in the database the "if" clause will run.And if we edit an existing one the else clause will run
+	if movie.ID == 0{
+		err = app.models.DB.InsertMovie(movie)
+		if err != nil {
+			app.errorJSON(w, err)
+			return
+		}
+	} else{
+		err = app.models.DB.UpdateMovie(movie)
+		if err != nil {
+			app.errorJSON(w, err)
+			return
+		}
 	}
 
 	//sets a response that everything worked well

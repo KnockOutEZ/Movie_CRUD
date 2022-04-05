@@ -8,11 +8,12 @@ import (
 	"time"
 )
 
+
 type DBModel struct {
 	DB *sql.DB
 }
 
-//Get returns one movie and err if any
+//Get returns one movie and err if any from database
 func (m *DBModel) Get(id int) (*Movie, error) {
 	//context
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -89,7 +90,7 @@ func (m *DBModel) Get(id int) (*Movie, error) {
 	return &movie, nil
 }
 
-//All() returns all movies and if serched by genre it will show all movies with same genre
+//All() returns all movies and if serched by genre it will show all movies with same genre from database
 func (m *DBModel) All(genre ...int) ([]*Movie, error) {
 	//setup our context
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -190,13 +191,13 @@ func (m *DBModel) All(genre ...int) ([]*Movie, error) {
 	return movies, nil
 }
 
-//for getting all genres
+//for getting all genres from database
 func (m *DBModel) GenreAll() ([]*Genre, error) {
 	//setup our context
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	//query for database.
+	//query for getting all genres database.
 	query := `select id, genre_name, created_at, updated_at from genres order by genre_name
 `
 
@@ -226,12 +227,13 @@ func (m *DBModel) GenreAll() ([]*Genre, error) {
 	return genres, nil
 }
 
+//inserts new movie in the database
 func (m *DBModel) InsertMovie(movie Movie) error {
 	//setup our context
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	//query for database.
+	//query for adding new movies in database.
 	query := `insert into movies (title, description, year, release_date, runtime, rating, mpaa_rating,
 			  created_at,updated_at) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 	
@@ -246,6 +248,37 @@ func (m *DBModel) InsertMovie(movie Movie) error {
 		movie.MPAARating,
 		movie.Created_At,
 		movie.Updated_At,
+	)
+
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+//for updating movies in database
+func (m *DBModel) UpdateMovie(movie Movie) error {
+	//setup our context
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	//query for updating data in database.
+	query := `update movies set title = $1, description = $2, year = $3, release_date = $4, runtime = $5, rating = $6, mpaa_rating = $7,
+			  updated_at = $8 where id = $9`
+	
+	//adding data from editMovie to database
+	_, err := m.DB.ExecContext(ctx, query,
+		movie.Title,
+		movie.Description,
+		movie.Year,
+		movie.ReleaseDate,
+		movie.Runtime,
+		movie.Rating,
+		movie.MPAARating,
+		movie.Updated_At,
+		movie.ID,
 	)
 
 	if err != nil {
