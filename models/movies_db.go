@@ -234,7 +234,8 @@ func (m *DBModel) InsertMovie(movie Movie) error {
 	//query for database.
 	query := `insert into movies (title, description, year, release_date, runtime, rating, mpaa_rating,
 			  created_at,updated_at) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
-
+	
+	//adding data from editMovie to database
 	_, err := m.DB.ExecContext(ctx, query,
 		movie.Title,
 		movie.Description,

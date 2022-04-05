@@ -154,8 +154,6 @@ func (app *application) editMovie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println(payload.Title)
-
 	//this is the main game.
 	var movie models.Movie
 
@@ -173,14 +171,12 @@ func (app *application) editMovie(w http.ResponseWriter, r *http.Request) {
 
 	//finally passing down the data to database
 	err = app.models.DB.InsertMovie(movie)
-
-	log.Println(movie.Title)
-
 	if err != nil {
 		app.errorJSON(w, err)
 		return
 	}
 
+	//sets a response that everything worked well
 	ok := jsonResp{
 		OK: true,
 	}
