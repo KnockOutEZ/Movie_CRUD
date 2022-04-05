@@ -288,3 +288,20 @@ func (m *DBModel) UpdateMovie(movie Movie) error {
 
 	return nil
 }
+
+//for deleting a movie
+func (m *DBModel) DeleteMovieDb(id int) error{
+	//context
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	//query for deleting movie database. id=$1 is the placeholder
+	query := `delete from movies where id = $1`
+
+	//this will execute the delete query and delete a movie with same id
+	_ , err := m.DB.ExecContext(ctx,query,id)
+	if err != nil{
+		return err
+	}
+	return nil
+}
