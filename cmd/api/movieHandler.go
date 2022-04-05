@@ -122,25 +122,31 @@ func (app *application) getAllMoviesByGenre(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+//for deleting a movie
 func (app *application) deleteMovie(w http.ResponseWriter, r *http.Request) {
+	//getting id from id parameter
 	params := httprouter.ParamsFromContext(r.Context())
 
+	//converting the id to int cause it comes as string
 	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil{
 		app.errorJSON(w,err)
 		return
 	}
 
+	//finally deleting the movie by passing the id to DeleteMoviesDb func
 	err =  app.models.DB.DeleteMovieDb(id)
 	if err != nil{
 		app.errorJSON(w,err)
 		return
 	}
 
+	//writing a positive response so we can know that the operation was a success
 	ok := jsonResp{
 		OK:true,
 	}
 
+	//sending the positive response to frontend
 	err = app.writeJSON(w,http.StatusOK,ok,"response")
 	if err != nil{
 		app.errorJSON(w,err)
