@@ -1,13 +1,22 @@
 package main
 
 import (
+	"backend/models"
+	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 )
 
+//jsonResp is used for getting request or response status
+type jsonResp struct {
+	OK      bool   `json:"ok"`
+	Message string `json:message`
+}
 
 func (app *application) getOneMovie(w http.ResponseWriter, r *http.Request) {
 
@@ -75,52 +84,115 @@ func (app *application) getAllMovies(w http.ResponseWriter, r *http.Request) {
 }
 
 //for getting all genres
-func (app * application) getAllGenres(w http.ResponseWriter, r *http.Request){
-	genres,err := app.models.DB.GenreAll()
+func (app *application) getAllGenres(w http.ResponseWriter, r *http.Request) {
+	genres, err := app.models.DB.GenreAll()
 
 	if err != nil {
-		app.errorJSON(w,err)
+		app.errorJSON(w, err)
 		return
 	}
 
-	err = app.writeJSON(w,http.StatusOK,genres,"genres")
+	err = app.writeJSON(w, http.StatusOK, genres, "genres")
 }
 
 //get all movies sorted by genre
-func (app *application) getAllMoviesByGenre(w http.ResponseWriter, r *http.Request){
+func (app *application) getAllMoviesByGenre(w http.ResponseWriter, r *http.Request) {
 	//to get the id from url
 	params := httprouter.ParamsFromContext(r.Context())
 
 	//convert url param to int
 	genreID, err := strconv.Atoi(params.ByName("genre_id"))
-	if err != nil{
-		app.errorJSON(w,err)
+	if err != nil {
+		app.errorJSON(w, err)
 		return
 	}
 
-	//finally calling All() function with genre id for getting movies with same genre 
-	movies,err := app.models.DB.All(genreID)
-	if err != nil{
+	//finally calling All() function with genre id for getting movies with same genre
+	movies, err := app.models.DB.All(genreID)
+	if err != nil {
 		app.errorJSON(w, err)
 		return
 	}
 
 	//then passing all the data to writeJSON func in utilities for showing them in browser
-	err = app.writeJSON(w,http.StatusOK,movies,"movies")
+	err = app.writeJSON(w, http.StatusOK, movies, "movies")
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
 }
 
-func (app *application) deleteMovie(w http.ResponseWriter, r *http.Request){
+func (app *application) deleteMovie(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (app *application) insertMovie(w http.ResponseWriter, r *http.Request){
-	
+func (app *application) insertMovie(w http.ResponseWriter, r *http.Request) {
+
 }
 
-func (app *application) updateMovie(w http.ResponseWriter, r *http.Request){
-	
+//creating a temporary payload to store all the string type data from frontend
+type MoviePayload struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Year        string `json:"year"`
+	ReleaseDate string `json:"release_date"`
+	Runtime     string `json:"runtime"`
+	Rating      string `json:"rating"`
+	MPAARating  string `json:"mpaa_rating"`
 }
 
-func (app *application) searchMovies(w http.ResponseWriter, r *http.Request){
-	
+//for adding a movie data
+func (app *application) editMovie(w http.ResponseWriter, r *http.Request) {
+	var payload MoviePayload
+
+	//taking data from request body and pushing them to payload struct temporarily (cause the data coming from frontend is all string type and we dont wanna take the hassle to convert all one by one)
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		log.Println(err)
+		app.errorJSON(w, err)
+		return
+	}
+
+	log.Println(payload.Title)
+
+	//this is the main game.
+	var movie models.Movie
+
+	//converting and pushing all data into our main Movie struct
+	movie.ID, _ = strconv.Atoi(payload.ID)
+	movie.Title = payload.Title
+	movie.Description = payload.Description
+	movie.ReleaseDate, _ = time.Parse("2006-01-02", payload.ReleaseDate)
+	movie.Year = movie.ReleaseDate.Year()
+	movie.Runtime, _ = strconv.Atoi(payload.Runtime)
+	movie.Rating, _ = strconv.Atoi(payload.Rating)
+	movie.MPAARating = payload.MPAARating
+	movie.Created_At = time.Now()
+	movie.Updated_At = time.Now()
+
+	//finally passing down the data to database
+	err = app.models.DB.InsertMovie(movie)
+
+	log.Println(movie.Title)
+
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	ok := jsonResp{
+		OK: true,
+	}
+
+	//passing the response to browser
+	err = app.writeJSON(w, http.StatusOK, ok, "response")
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+}
+
+func (app *application) searchMovies(w http.ResponseWriter, r *http.Request) {
+
 }
