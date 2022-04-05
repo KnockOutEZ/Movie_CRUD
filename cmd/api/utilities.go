@@ -29,19 +29,28 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data interf
 	return nil
 }
 
-//for better error handling
-func (app *application) errorJSON(w http.ResponseWriter,err error){
+//for better error handling. status ...int means that it is not a required argument
+func (app *application) errorJSON(w http.ResponseWriter, err error, status ...int) {
+
+	//By default it send http.StatusBadRequest as our response to frontend
+	statusCode := http.StatusBadRequest
+	
+	//But we can send our custom status code if we want.Btw statusCode is an int
+	if len(status) > 0 {
+		statusCode = status[0]
+	}
+
 	//struct for error message
-	type jsonError struct{
+	type jsonError struct {
 		Message string `json:"message"`
 	}
 
 	//setting error struct value
 	theError := jsonError{
 		//sets the error message as a string
-		Message: err.Error() ,
+		Message: err.Error(),
 	}
 
 	//finally sends all the info to writeJSON function
-	app.writeJSON(w, http.StatusBadRequest,theError,"error")
+	app.writeJSON(w, statusCode, theError, "error")
 }
