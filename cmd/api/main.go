@@ -26,6 +26,9 @@ type config struct {
 		//database connection string to connect with database
 		dsn string
 	}
+	jwt struct{
+		secret string
+	}
 }
 
 //status struct for status request
@@ -49,6 +52,7 @@ func main() {
 	flag.StringVar(&cfg.env, "env", "development", "Application environment (development|production")
 	//read connection from command flag.The format of the connection link it postgres:://username:pass@localhost or ip/ dbname
 	flag.StringVar(&cfg.db.dsn, "dsn", "postgres://postgres:root@localhost/movie_api?sslmode=disable", "Postgres connection string")
+	flag.StringVar(&cfg.jwt.secret, "jwt-secret", "2dce505d96a53c5768052ee90f3df2055657518dad489160df9913f66042e160","secret")
 	flag.Parse()
 
 	//logs data in the terminal

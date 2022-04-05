@@ -13,6 +13,8 @@ func (app *application) routes() http.Handler {
 	//usual routing procedure.method,url,function
 	router.HandlerFunc(http.MethodGet, "/status", app.statusHandler)
 
+	router.HandlerFunc(http.MethodPost,"/v1/signin",app.SignIn)
+
 	router.HandlerFunc(http.MethodGet, "/v1/movies", app.getAllMovies)
 	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.getOneMovie)
 
